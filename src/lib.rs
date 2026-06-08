@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::{Arc,Mutex};
 use std::fs;
 use serde::{Serialize, de::DeserializeOwned};
@@ -25,28 +26,49 @@ impl <T> PumpkinDB<T> where T: Serialize + DeserializeOwned + Default + Clone + 
   }
 
   pub fn get_data(&self) -> T {
-    let db_lock = self.data.lock().unwrap();
-    db_lock.clone()
+    let guard = self.data.lock().unwrap();
+    guard.clone()
   }
 
-  pub fn update<F>(&self, update_fn:F) where F:FnOnce(&mut T) {
-    let mut db_lock = self.data.lock().unwrap();
+  pub fn get_entry<K,V>(&self, key: &K) -> Option<V>
+  where
+    T: AsRef<HashMap<K, V>>,
+    K: std::hash::Hash + Eq,
+    V: Clone,
+  {
+    let guard = self.data.lock().unwrap();
+    guard.as_ref().get(key).cloned()
+  }
 
-    update_fn(&mut *db_lock);
+  pub fn update_entry<K,V,F>(&self, key:K, update_fn:F)
+  where
+    T: AsMut<HashMap<K,V>>,
+    K: std::hash::Hash + Eq + Clone + Send + 'static,
+    V: Default + Clone + Send + 'static,
+    F: FnOnce(&mut V),
+  {
+    let mut guard = self.data.lock().unwrap();
 
-    let data_clone = db_lock.clone();
+    let entry = guard.as_mut().entry(key).or_insert_with(V::default);
+    update_fn(entry);
+
+    let data_clone = guard.clone();
     let path_clone = self.file_path.clone();
 
     std::thread::spawn(move || {
       if let Ok(json_str) = serde_json::to_string_pretty(&data_clone) {
-        let _ = fs::write(path_clone, json_str);
+        if let Err(e) = fs::write(path_clone, json_str) {
+          let _ = ::std::io::stderr();
+          eprintln!("[PumpkinDb Error] Failed to write data to disk: {:?}", e);
+
+        }
       }
     });
   }
 
   pub fn force_save(&self) {
-    let db_lock = self.data.lock().unwrap();
-    if let Ok(json_str) = serde_json::to_string_pretty(&*db_lock) {
+    let guard = self.data.lock().unwrap();
+    if let Ok(json_str) = serde_json::to_string_pretty(&*guard) {
       let _ = fs::write(&self.file_path, json_str);
     }
   }
