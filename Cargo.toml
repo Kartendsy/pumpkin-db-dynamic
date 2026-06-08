@@ -1,6 +1,6 @@
 [package]
-name = "pumpkin_db_dynamic"
-version = "0.1.1"
+name = "pumpkin-db-dynamic"
+version = "0.1.3"
 edition = "2024"
 authors = ["Kartendsy <sprsupra45@gmail.com>"]
 description = "A dynamic, generic Wasm-friendly database wrapper for PumpkinMC plugins."
