@@ -1,0 +1,15 @@
+[package]
+name = "pumpkin_db_dynamic"
+version = "0.1.0"
+edition = "2024"
+authors = ["Kartendsy <sprsupra45@gmail.com>"]
+description = "A dynamic, generic Wasm-friendly database wrapper for PumpkinMC plugins."
+license = "MIT"
+repository = "https://github.com/Kartendsy/pumpkin_db"
+readme = "README.md"
+keywords = ["pumpkin", "minecraft", "database", "wasm", "generic"]
+categories = ["database", "wasm"]
+
+[dependencies]
+serde = "1.0.228"
+serde_json = "1.0.150"
