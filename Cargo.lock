@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pumpkin-db-dynamic"
+name = "pumpkin-db-dyn"
 version = "0.1.3"
 dependencies = [
  "serde",
